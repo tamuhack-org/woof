@@ -33,7 +33,7 @@ CLIENT_TOKEN = os.environ['ENV_CLIENT_TOKEN']
 ORGANIZER_SUPPORT_DISCORD_NAME = os.environ['ENV_ORGANIZER_SUPPORT_DISCORD_NAME']
 
 CHECKIN_CHANNEL_ID = int(os.environ['ENV_CHECKIN_CHANNEL_ID'])
-SPONSOR_ID = int(os.environ['ENV_SPONSOR_ID'])
+# SPONSOR_ID = int(os.environ['ENV_SPONSOR_ID'])
 MENTOR_ID = int(os.environ['ENV_MENTOR_ID'])
 HACKER_ID = int(os.environ['ENV_HACKER_ID'])
 
@@ -54,11 +54,12 @@ async def _checkin(ctx, email):
     await ctx.message.delete()
     return
 
-  sponsor_role = discord.utils.get(ctx.guild.roles, id=SPONSOR_ID)
+  # sponsor_role = discord.utils.get(ctx.guild.roles, id=SPONSOR_ID)
   mentor_role = discord.utils.get(ctx.guild.roles, id=MENTOR_ID)
   hacker_role = discord.utils.get(ctx.guild.roles, id=HACKER_ID)
 
-  checkin_roles = [sponsor_role, mentor_role, hacker_role]
+  checkin_roles = [mentor_role, hacker_role]
+  # checkin_roles = [sponsor_role, mentor_role, hacker_role]
 
   # check if user has a role already
   for author_role in ctx.author.roles:
@@ -74,8 +75,8 @@ async def _checkin(ctx, email):
   mentors_results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="mentors!A2:B").execute()
   mentors_emails = list(map(lambda row: row[0].lower(), mentors_results.get('values', [])))
 
-  sponsors_results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="sponsors!A2:B").execute()
-  sponsors_emails = list(map(lambda row: row[0].lower(), sponsors_results.get('values', [])))
+  # sponsors_results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="sponsors!A2:B").execute()
+  # sponsors_emails = list(map(lambda row: row[0].lower(), sponsors_results.get('values', [])))
   
   if email in hackers_emails:
     # 2 for the header row + index starts at 0
@@ -85,6 +86,7 @@ async def _checkin(ctx, email):
     await ctx.author.add_roles(hacker_role)
     await ctx.author.create_dm()
     await ctx.author.dm_channel.send(f'{ctx.author.mention} you now have {hacker_role} role!')
+    await ctx.author.dm_channel.send(f'We are happy to have you here at TAMUhack!\n\n Please read through the 👋│welcome, 📢│announcements, and 🔗│important-links channels to stay up to date on TAMUhack information.\n We hope you enjoy the event and best of luck!')
     return
 
   elif email in mentors_emails:
@@ -95,17 +97,18 @@ async def _checkin(ctx, email):
     await ctx.author.add_roles(mentor_role)
     await ctx.author.create_dm()
     await ctx.author.dm_channel.send(f'{ctx.author.mention} you now have {mentor_role} role!')
+    await ctx.author.dm_channel.send(f'We are happy to have you here at TAMUhack!\n\n Please read through the 👋│welcome, 📢│announcements, and 🔗│important-links channels to stay up to date on TAMUhack information.\n Thank you for taking the time to help run this event. We couldn\'t do it without you! If you have any questions or need any help, please reach out to us via the mentor categories/channels or any other methods!')
     return
 
-  elif email in sponsors_emails:
-    # 2 for the header row + index starts at 0
-    spreadsheetIndex = 2 + sponsors_emails.index(email)
-    sheet.values().update(spreadsheetId=SPREADSHEET_ID, range=f'sponsors!B{spreadsheetIndex}', valueInputOption="USER_ENTERED", body={'values': [[1]]}).execute()
+  # elif email in sponsors_emails:
+  #   # 2 for the header row + index starts at 0
+  #   spreadsheetIndex = 2 + sponsors_emails.index(email)
+  #   sheet.values().update(spreadsheetId=SPREADSHEET_ID, range=f'sponsors!B{spreadsheetIndex}', valueInputOption="USER_ENTERED", body={'values': [[1]]}).execute()
 
-    await ctx.author.add_roles(sponsor_role)
-    await ctx.author.create_dm()
-    await ctx.author.dm_channel.send(f'{ctx.author.mention} you now have {sponsor_role} role!')
-    return
+  #   await ctx.author.add_roles(sponsor_role)
+  #   await ctx.author.create_dm()
+  #   await ctx.author.dm_channel.send(f'{ctx.author.mention} you now have {sponsor_role} role!')
+  #   return
 
   else:
     await ctx.author.create_dm()
