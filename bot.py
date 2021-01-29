@@ -76,7 +76,7 @@ async def _checkin(ctx, email):
 
   sponsors_results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="sponsors!A2:B").execute()
   sponsors_emails = list(map(lambda row: row[0].lower(), sponsors_results.get('values', [])))
-
+  
   if email in hackers_emails:
     # 2 for the header row + index starts at 0
     spreadsheetIndex = 2 + hackers_emails.index(email)
@@ -110,5 +110,34 @@ async def _checkin(ctx, email):
   else:
     await ctx.author.create_dm()
     await ctx.author.dm_channel.send(f'Email not found, please make sure you are writing the email and command correctly (Ex: !checkin email@example.com). If you need any help, please contact an organizer or {ORGANIZER_SUPPORT_DISCORD_NAME}.')
+
+@client.event
+async def on_message(message):
+  channel = message.channel
+  if channel.id == CHECKIN_CHANNEL_ID:
+    await message.delete()
+
+  await client.process_commands(message)
+
+@_checkin.error
+async def checkin_error(ctx, error):
+  if isinstance(error, commands.MissingRequiredArgument):
+    if ctx.channel.id != CHECKIN_CHANNEL_ID:
+      await ctx.author.create_dm()
+      await ctx.message.delete()
+      await ctx.author.dm_channel.send(f'Howdy {ctx.author.mention}! Please check in using the checkin channel! If you need any help, contact an organizer or {ORGANIZER_SUPPORT_DISCORD_NAME}.')
+  
+    else:
+      await ctx.author.create_dm()
+      await ctx.author.dm_channel.send(f'Email not found, please make sure you are writing the email and command correctly (Ex: !checkin email@example.com). If you need any help, please contact an organizer or {ORGANIZER_SUPPORT_DISCORD_NAME}.')
+  
+  else:
+    await ctx.author.create_dm()
+    await ctx.author.dm_channel.send(f'An error has occurred. Please contact an organizer or {ORGANIZER_SUPPORT_DISCORD_NAME}.')
+
+@client.event
+async def on_command_error(ctx, error):
+  if isinstance(error, commands.CommandNotFound):
+    print(f'Invalid command, {ctx.invoked_with} used. Message was: {ctx.message}')
 
 client.run(CLIENT_TOKEN)
