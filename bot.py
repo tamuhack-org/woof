@@ -85,8 +85,7 @@ async def _checkin(ctx, email):
 
     await ctx.author.add_roles(hacker_role)
     await ctx.author.create_dm()
-    await ctx.author.dm_channel.send(f'{ctx.author.mention} you now have {hacker_role} role!')
-    await ctx.author.dm_channel.send(f'We are happy to have you here at TAMUhack!\n\n Please read through the 👋│welcome, 📢│announcements, and 🔗│important-links channels to stay up to date on TAMUhack information.\n We hope you enjoy the event and best of luck!')
+    await ctx.author.dm_channel.send(f'{ctx.author.mention} you now have the {hacker_role} role!\nWe are happy to have you here at TAMUhack!\n\nPlease read through the 👋│welcome, 📢│announcements, and 🔗│important-links channels to stay up to date on TAMUhack information.\nWe hope you enjoy the event and best of luck!')
     return
 
   elif email in mentors_emails:
@@ -96,8 +95,7 @@ async def _checkin(ctx, email):
 
     await ctx.author.add_roles(mentor_role)
     await ctx.author.create_dm()
-    await ctx.author.dm_channel.send(f'{ctx.author.mention} you now have {mentor_role} role!')
-    await ctx.author.dm_channel.send(f'We are happy to have you here at TAMUhack!\n\n Please read through the 👋│welcome, 📢│announcements, and 🔗│important-links channels to stay up to date on TAMUhack information.\n Thank you for taking the time to help run this event. We couldn\'t do it without you! If you have any questions or need any help, please reach out to us via the mentor categories/channels or any other methods!')
+    await ctx.author.dm_channel.send(f'{ctx.author.mention} you now have {mentor_role} role!\nWe are happy to have you here at TAMUhack!\n\n Please read through the 👋│welcome, 📢│announcements, and 🔗│important-links channels to stay up to date on TAMUhack information.\n Thank you for taking the time to help run this event. We couldn\'t do it without you! If you have any questions or need any help, please reach out to us via the mentor categories/channels or any other methods!')
     return
 
   # elif email in sponsors_emails:
