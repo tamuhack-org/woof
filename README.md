@@ -1,4 +1,4 @@
-# TAMUhack Discord Bot
+# TAMUhack Discord Bot - Little Miss Reveille
 This bot is used in the TAMUhack community server to checkin hackers, mentors, and sponsors to the event.
 
 It was heavily inspired by the ShellHacks Discord bot from UPE @ FIU. Special shoutout to them!
