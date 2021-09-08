@@ -13,7 +13,7 @@ load_dotenv()
 # write the keys.json file for GSHEET credentials
 keys = open(os.environ['ENV_GSHEETS_KEY_FILE'], 'w')
 keys.write(os.environ['ENV_GSHEETS_SERVICE_ACCOUNT_CREDENTIALS'])
-keys.close()
+keys.close() 
 
 # Google Sheets initialization
 # Follow https://youtu.be/4ssigWmExak to setup a service account to interact with your Google Sheet
