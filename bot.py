@@ -5,6 +5,7 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
 import os
+import datetime
 # load environmment variables
 from dotenv import load_dotenv
 load_dotenv()
@@ -12,7 +13,7 @@ load_dotenv()
 # write the keys.json file for GSHEET credentials
 keys = open(os.environ['ENV_GSHEETS_KEY_FILE'], 'w')
 keys.write(os.environ['ENV_GSHEETS_SERVICE_ACCOUNT_CREDENTIALS'])
-keys.close()
+keys.close() 
 
 # Google Sheets initialization
 # Follow https://youtu.be/4ssigWmExak to setup a service account to interact with your Google Sheet
@@ -33,8 +34,6 @@ CLIENT_TOKEN = os.environ['ENV_CLIENT_TOKEN']
 ORGANIZER_SUPPORT_DISCORD_NAME = os.environ['ENV_ORGANIZER_SUPPORT_DISCORD_NAME']
 
 CHECKIN_CHANNEL_ID = int(os.environ['ENV_CHECKIN_CHANNEL_ID'])
-# SPONSOR_ID = int(os.environ['ENV_SPONSOR_ID'])
-MENTOR_ID = int(os.environ['ENV_MENTOR_ID'])
 HACKER_ID = int(os.environ['ENV_HACKER_ID'])
 
 @client.event
@@ -55,10 +54,9 @@ async def _checkin(ctx, email):
     return
 
   # sponsor_role = discord.utils.get(ctx.guild.roles, id=SPONSOR_ID)
-  mentor_role = discord.utils.get(ctx.guild.roles, id=MENTOR_ID)
   hacker_role = discord.utils.get(ctx.guild.roles, id=HACKER_ID)
 
-  checkin_roles = [mentor_role, hacker_role]
+  checkin_roles = [hacker_role]
   # checkin_roles = [sponsor_role, mentor_role, hacker_role]
 
   # check if user has a role already
@@ -72,41 +70,29 @@ async def _checkin(ctx, email):
   hackers_results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="hackers!A2:B").execute()
   hackers_emails = list(map(lambda row: row[0].lower(), hackers_results.get('values', [])))
 
-  mentors_results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="mentors!A2:B").execute()
-  mentors_emails = list(map(lambda row: row[0].lower(), mentors_results.get('values', [])))
+  current_utc = datetime.datetime.utcnow()
 
-  # sponsors_results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="sponsors!A2:B").execute()
-  # sponsors_emails = list(map(lambda row: row[0].lower(), sponsors_results.get('values', [])))
-  
   if email in hackers_emails:
     # 2 for the header row + index starts at 0
     spreadsheetIndex = 2 + hackers_emails.index(email)
-    sheet.values().update(spreadsheetId=SPREADSHEET_ID, range=f'hackers!B{spreadsheetIndex}', valueInputOption="USER_ENTERED", body={'values': [[1]]}).execute()
 
-    await ctx.author.add_roles(hacker_role)
-    await ctx.author.create_dm()
-    await ctx.author.dm_channel.send(f'{ctx.author.mention} you now have the {hacker_role} role!\nWe are happy to have you here at TAMUhack!\n\nPlease read through the 👋│welcome, 📢│announcements, and 🔗│important-links channels to stay up to date on TAMUhack information.\nWe hope you enjoy the event and best of luck!')
-    return
+    res = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=f'hackers!B{spreadsheetIndex}').execute()
+    rsvpStatus = res['values'][0][0]
 
-  elif email in mentors_emails:
-    # 2 for the header row + index starts at 0
-    spreadsheetIndex = 2 + mentors_emails.index(email)
-    sheet.values().update(spreadsheetId=SPREADSHEET_ID, range=f'mentors!B{spreadsheetIndex}', valueInputOption="USER_ENTERED", body={'values': [[1]]}).execute()
+    if rsvpStatus == 'yes':
+      sheet.values().update(spreadsheetId=SPREADSHEET_ID, range=f'hackers!C{spreadsheetIndex}', valueInputOption="USER_ENTERED", body={'values': [[1]]}).execute()
+      sheet.values().update(spreadsheetId=SPREADSHEET_ID, range=f'hackers!D{spreadsheetIndex}', valueInputOption="USER_ENTERED", body={'values': [[ctx.author.name + '#' + ctx.author.discriminator]]}).execute()
+      sheet.values().update(spreadsheetId=SPREADSHEET_ID, range=f'hackers!E{spreadsheetIndex}', valueInputOption="USER_ENTERED", body={'values': [[ctx.author.id]]}).execute()
+      sheet.values().update(spreadsheetId=SPREADSHEET_ID, range=f'hackers!F{spreadsheetIndex}', valueInputOption="USER_ENTERED", body={'values': [[str(current_utc)]]}).execute()
 
-    await ctx.author.add_roles(mentor_role)
-    await ctx.author.create_dm()
-    await ctx.author.dm_channel.send(f'{ctx.author.mention} you now have {mentor_role} role!\nWe are happy to have you here at TAMUhack!\n\n Please read through the 👋│welcome, 📢│announcements, and 🔗│important-links channels to stay up to date on TAMUhack information.\n Thank you for taking the time to help run this event. We couldn\'t do it without you! If you have any questions or need any help, please reach out to us via the mentor categories/channels or any other methods!')
-    return
-
-  # elif email in sponsors_emails:
-  #   # 2 for the header row + index starts at 0
-  #   spreadsheetIndex = 2 + sponsors_emails.index(email)
-  #   sheet.values().update(spreadsheetId=SPREADSHEET_ID, range=f'sponsors!B{spreadsheetIndex}', valueInputOption="USER_ENTERED", body={'values': [[1]]}).execute()
-
-  #   await ctx.author.add_roles(sponsor_role)
-  #   await ctx.author.create_dm()
-  #   await ctx.author.dm_channel.send(f'{ctx.author.mention} you now have {sponsor_role} role!')
-  #   return
+      await ctx.author.add_roles(hacker_role)
+      await ctx.author.create_dm()
+      await ctx.author.dm_channel.send(f'{ctx.author.mention} you now have the {hacker_role} role!\nWe are happy to have you here at HowdyHack!\n\nPlease read through the 👋│hh-welcome and 📢│hh-announcements channels to stay up to date on HowdyHack information.\nWe hope you enjoy the event and best of luck!')
+      return
+    else:
+      await ctx.author.create_dm()
+      await ctx.author.dm_channel.send(f'👋 Howdy, {ctx.author.mention}!\n\nWe have you in our system, but you have not RSVP\'d yet. Please do so in our application portal, and then try again. \nNote: It can take up to 24 hours after you RSVP for you to be able to check-in. Please try again soon, and we look forward to seeing you at HowdyHack!\n\nIf you are still unable to check-in 24 hours later, please contact an organizer or {ORGANIZER_SUPPORT_DISCORD_NAME}.')
+      return
 
   else:
     await ctx.author.create_dm()
